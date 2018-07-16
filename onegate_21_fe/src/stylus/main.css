@@ -2401,3 +2401,6 @@ body .expansion-panel .expansion-panel__body div > .card {
 viewer-pdf-toolbar {
     display: block !important;
 }
+body .ext__form.expansion-panel {
+    border-bottom: 0;
+}

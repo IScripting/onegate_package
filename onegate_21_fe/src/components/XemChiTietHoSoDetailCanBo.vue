@@ -482,12 +482,12 @@
 import $ from 'jquery'
 import '../store/jquery_comment'
 import Comment from './Comment.vue'
-import PhanCong from './form_xu_ly/PhanCongNguoiThucHien.vue'
+import PhanCongNguoiThucHien from './form_xu_ly/PhanCongNguoiThucHien.vue'
 export default {
   props: ['index', 'id'],
   components: {
     'comment': Comment,
-    'phancong': Phancong
+    'phancong': PhanCongNguoiThucHien
   },
   data: () => ({
     dossierId: '',
