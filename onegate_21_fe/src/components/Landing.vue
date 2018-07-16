@@ -922,6 +922,7 @@ export default {
       } else {
         vm.processAction(dossierItem, item, result, index, true)
       }
+      vm.$refs.thongTinCoBanHoSo.initData(dossierItem.dossierId)
     },
     processPullBtnDetail (dossierItem, item, index) {
       let vm = this

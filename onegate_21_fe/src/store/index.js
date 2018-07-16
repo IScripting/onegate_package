@@ -555,7 +555,11 @@ export const store = new Vuex.Store({
         }
         axios.get(state.initData.dossierApi + '/' + data + '/files', param).then(function (response) {
           commit('setDossierFiles', response.data.data)
-          resolve(response.data.data)
+          if (response.data.data) {
+            resolve(response.data.data)
+          } else {
+            resolve([])
+          }
         }).catch(function (xhr) {
           console.log(xhr)
           reject(xhr)
@@ -728,11 +732,10 @@ export const store = new Vuex.Store({
         let url = state.initData.dossierApi + '/' + data.dossierId + '/marks/' + data.partNo
         axios.post(url, dataPostdossierMark, options).then(function (response) {
           resolve(response.data)
-          toastr.success('Yêu cầu của bạn được thực hiện thành công.')
           commit('setLoading', false)
         }).catch(function (xhr) {
           reject(xhr)
-          toastr.error('Yêu cầu của bạn được thực hiện thất bại.')
+          // toastr.error('Yêu cầu của bạn được thực hiện thất bại.')
           commit('setLoading', false)
         })
       })
@@ -1014,7 +1017,7 @@ export const store = new Vuex.Store({
             params: {}
           }
           var listHistoryProcessing = []
-          axios.get(state.initData.dossierApi + '/dossierlogs/' + data.dossierId + '/logs', param).then(function (response) {
+          axios.get(state.initData.dossierlogsApi + '/' + data.dossierId + '/logs', param).then(function (response) {
             var serializable = response.data
             for (var key in serializable.data) {
               if (serializable.data[key].notificationType === 'PROCESS_TYPE') {
@@ -1279,13 +1282,11 @@ export const store = new Vuex.Store({
               if(serializable){
                 for (var i = 0; i < serializable.length; i++) {
                   serializable[i].type = 1
-                  if(!serializable[i].autoEvent){
-                    if(serializable[i].configNote){
-                      var configNote = JSON.parse(serializable[i].configNote)
-                      serializable[i].configNote = configNote
-                    }
-                    serializableNextActionConvert.push(serializable[i])
+                  if(serializable[i].configNote){
+                    var configNote = JSON.parse(serializable[i].configNote)
+                    serializable[i].configNote = configNote
                   }
+                  serializableNextActionConvert.push(serializable[i])
                 }
               }else {
                 serializable = []
@@ -1397,7 +1398,7 @@ export const store = new Vuex.Store({
             stepType: data.stepType
           }
         }
-        let url = state.initData.dossierApi + '/' + data.dossierId + '/actions'
+        let url = state.initData.dossierApi + '/' + data.dossierId + '/sequences'
         return new Promise((resolve, reject) => {
           axios.get(url, config).then(function (response) {
             resolve(response.data)
@@ -1556,7 +1557,7 @@ export const store = new Vuex.Store({
         })
       })
     },
-    getNextAction ({commit, state}, data) {
+    getNextAction ({commit, state}, filter) {
       return new Promise((resolve, reject) => {
         store.dispatch('loadInitResource').then(function (result) {
           let param = {
@@ -1633,6 +1634,27 @@ export const store = new Vuex.Store({
           resolve(response.data)
         }).catch(function (xhr) {
           reject(xhr)
+        })
+      })
+    },
+    reassignDossier ({commit, state}, data) {
+      return new Promise((resolve, reject) => {
+        store.dispatch('loadInitResource').then(function (result) {
+          let param = {
+            headers: {
+              groupId: state.initData.groupId
+            }
+          }
+          let formData = new URLSearchParams()
+          formData.append('toUsers', JSON.stringify(data.toUsers))
+          axios.put(state.initData.dossierApi + '/' + data.dossierId + '/reassign' ,formData , param).then(function (response) {
+            let serializable = response.data
+            resolve(serializable)
+          }).catch(function (error) {
+            console.log(error)
+            toastr.error('Yêu cầu của bạn được thực hiện thất bại.')
+            reject(error)
+          })
         })
       })
     }

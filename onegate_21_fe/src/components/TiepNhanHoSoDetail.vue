@@ -196,11 +196,13 @@ export default {
       let dataPostAction = {
         dossierId: vm.dossierId,
         actionCode: 1100,
+        actionNode: '',
+        actionUser: '',
         payload: '',
         security: '',
-        assignUsers: {},
-        payment: {},
-        createDossiers: {}
+        assignUsers: '',
+        payment: '',
+        createDossiers: ''
       }
       vm.$store.dispatch('postAction', dataPostAction).then(function (result) {
       })

@@ -46,7 +46,7 @@
                 <content-placeholders class="mt-1" v-if="loading">
                   <content-placeholders-text :lines="1" />
                 </content-placeholders>
-                <v-subheader v-else class="pl-0 header-text-field"> {{thongTinChiTietHoSo.submitDate|dateTimeView}} </v-subheader>
+                <v-subheader v-else class="pl-0 header-text-field"> {{thongTinChiTietHoSo.submitDate}} </v-subheader>
               </v-flex>
               <!--  -->
               <v-flex xs12 sm2>
@@ -72,7 +72,7 @@
                 <content-placeholders class="mt-1" v-if="loading">
                   <content-placeholders-text :lines="1" />
                 </content-placeholders>
-                <v-subheader v-else class="pl-0 header-text-field"> {{thongTinChiTietHoSo.receiveDate|dateTimeView}}</v-subheader>
+                <v-subheader v-else class="pl-0 header-text-field"> {{thongTinChiTietHoSo.receiveDate}}</v-subheader>
               </v-flex>
               <!--  -->
               <v-flex xs12 sm2>
@@ -172,7 +172,7 @@
     </v-expansion-panel>
     <!--  -->
     <div>
-      <v-tabs slider-color="primary" style="background-color: #dae8e8;">
+      <v-tabs slider-color="primary" style="background-color: #dae8e8;" reverse-transition="fade-transition" transition="fade-transition">
         <v-tab key="1" class="mr-2">
           THÀNH PHẦN HỒ SƠ
         </v-tab>
@@ -359,13 +359,12 @@
                     Phân công:
                   </v-flex>
                   <v-flex xs12 class="mb-3" v-if="stepModel.allowAssignUser > 0">
-                    <phancong v-model="stepModel.toUsers" type="1"></phancong> 
+                    <phancong v-model="stepModel.toUsers" :type="stepModel.allowAssignUser"></phancong> 
                   </v-flex>
                   <v-flex xs12>
                     Nhập ý kiến {{stepModel.actionName}}:
                     <v-text-field
-                    name="processActionNote"
-                    id="processActionNote"
+                    v-model="actionNote"
                     multi-line
                     ></v-text-field>
                   </v-flex>
@@ -483,9 +482,9 @@
 import $ from 'jquery'
 import '../store/jquery_comment'
 import Comment from './Comment.vue'
-import Phancong from './PhanCong.vue'
+import PhanCong from './form_xu_ly/PhanCongNguoiThucHien.vue'
 export default {
-  // props: ['index', 'id'],
+  props: ['index', 'id'],
   components: {
     'comment': Comment,
     'phancong': Phancong
@@ -509,7 +508,8 @@ export default {
     dossierActions: [],
     itemselect: '',
     dossierSyncs: [],
-    stepModel: {},
+    stepModel: null,
+    actionNote: '',
     actionsSubmitLoading: false,
     headers: [{
       text: 'Vai trò',
@@ -582,7 +582,9 @@ export default {
   watch: {},
   created () {
     var vm = this
-    vm.$nextTick(function () {})
+    vm.$nextTick(function () {
+      vm.initData(vm.id)
+    })
   },
   methods: {
     initData (data) {
@@ -794,7 +796,42 @@ export default {
       }
     },
     postNextActions (stepModel) {
-
+      var vm = this
+      stepModel['dossierId'] = vm.thongTinChiTietHoSo.dossierId
+      if (stepModel.allowAssignUser > 0) {
+        vm.$store.dispatch('reassignDossier', stepModel).then(resReassign => {
+          console.log(resReassign)
+          let params = {
+            dossierId: vm.dossierId,
+            actionCode: stepModel.actionCode,
+            actionNote: vm.actionNote,
+            actionUser: '',
+            payload: '',
+            security: '',
+            assignUsers: '',
+            payment: '',
+            createDossiers: ''
+          }
+          vm.$store.dispatch('postAction', params).then(resPostAction => {
+            console.log(resPostAction)
+          })
+        })
+      } else {
+        let params = {
+          dossierId: vm.dossierId,
+          actionCode: stepModel.actionCode,
+          actionNote: vm.actionNote,
+          actionUser: '',
+          payload: '',
+          security: '',
+          assignUsers: '',
+          payment: '',
+          createDossiers: ''
+        }
+        vm.$store.dispatch('postAction', params).then(resPostAction => {
+          console.log(resPostAction)
+        })
+      }
     }
   },
   filters: {

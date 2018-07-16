@@ -4,7 +4,7 @@
       <content-placeholders-text :lines="1" />
     </content-placeholders>
     <div v-else class="row-header" style="margin-top: 6px;">
-      <div class="background-triangle-big"> <span>CHI TIẾT HỒ SƠ</span> </div>
+      <!-- <div class="background-triangle-big"> <span>CHI TIẾT HỒ SƠ</span> </div>
       <div class="layout row wrap header_tools row-blue">
         <div class="flex xs8 sm10 pl-3 text-ellipsis text-bold" :title="thongTinChiTietHoSo.serviceName">
           {{thongTinChiTietHoSo.serviceName}}
@@ -14,9 +14,9 @@
             Quay lại &nbsp;
             <v-icon size="16">undo</v-icon>
           </v-btn>
-        </div> -->
-      </div> 
-    </div>
+        </div> 
+      </div> -->
+    </div> 
     <v-expansion-panel class="expansion-pl">
       <v-expansion-panel-content hide-actions value="1">
         <div slot="header"><div class="background-triangle-small"> <v-icon size="18" color="white">star_rate</v-icon> </div>THÔNG TIN CHUNG HỒ SƠ</div>
@@ -187,14 +187,9 @@
         return this.$store.getters.loading
       }
     },
-    watch: {},
+    watch: {
+    },
     created () {
-      var vm = this
-      vm.$nextTick(function () {
-        vm.$store.dispatch('getDetailDossier', vm.id).then(resultDossier => {
-          vm.thongTinChiTietHoSo = resultDossier
-        })
-      })
     },
     methods: {
       initData (data) {
