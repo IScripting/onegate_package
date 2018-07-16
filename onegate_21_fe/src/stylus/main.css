@@ -2315,9 +2315,7 @@ body .input-group--selection-controls__ripple {
 .expansion-pl-transparent .expansion-panel__container .expansion-panel__header {
     border-bottom: 1px solid #ddd
 }
-.form-chitiet .tabs .tabs__bar, .form-chitiet .expansion-pl .expansion-panel__header {
-    background-color: #dae8e8
-}
+
 .form-chitiet .tabs .tabs__bar, .form-chitiet .expansion-pl-transparent .expansion-panel__header {
     background-color: transparent
 }
@@ -2401,6 +2399,9 @@ body .expansion-panel .expansion-panel__body div > .card {
 viewer-pdf-toolbar {
     display: block !important;
 }
-body .ext__form.expansion-panel {
-    border-bottom: 0;
+body .fade-transition-leave-active {
+    display: none !important;
+}
+body .tabs__content {
+    background: #fff;
 }

@@ -21,11 +21,5 @@ new Vue({ // eslint-disable-line no-new
   el: '#app',
   router,
   store,
-  render: h => h(App),
-  created () {
-    var vm = this
-    vm.$nextTick(function () {
-      vm.$store.dispatch('loadInitResource')
-    })
-  }
+  render: h => h(App)
 })

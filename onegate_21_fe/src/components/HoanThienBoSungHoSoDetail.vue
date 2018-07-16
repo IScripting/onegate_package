@@ -1,9 +1,6 @@
 <template>
   <div>
-    <content-placeholders class="mt-3" v-if="loading">
-      <content-placeholders-text :lines="1" />
-    </content-placeholders>
-    <div v-else class="row-header" style="margin-top: 6px;">
+    <div class="row-header">
       <div class="background-triangle-big"> HOÀN THIỆN BỔ SUNG HỒ SƠ </div> 
       <div class="layout row wrap header_tools row-blue">
         <div class="flex xs8 sm10 pl-3 text-ellipsis text-bold" >

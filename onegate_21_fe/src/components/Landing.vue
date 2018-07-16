@@ -195,7 +195,7 @@
             <v-icon>clear</v-icon>
           </v-btn>
           <v-progress-linear v-if="loadingActionProcess" class="my-0" :indeterminate="true"></v-progress-linear>
-          <v-card-text class="pb-0 pt-2 px-0">
+          <v-card-text class="py-0 px-0">
             <v-layout wrap>
               <thong-tin-co-ban-ho-so v-if="dialogActionProcess" ref="thong-tin-co-ban-ho-so" :id="dossierId"></thong-tin-co-ban-ho-so>
               <!-- showFormBoSungThongTinNgan: {{showFormBoSungThongTinNgan}} <br/> -->
@@ -210,7 +210,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary" flat="flat" @click.native="processAction(dossierItemDialogPick, itemDialogPick, resultDialogPick, indexDialogPick, true)"
+            <v-btn color="primary" flat="flat" @click.native="processAction(dossierItemDialogPick, itemDialogPick, resultDialogPick, indexDialogPick, false)"
               :loading="loadingActionProcess"
               :disabled="loadingActionProcess"
             >
@@ -234,7 +234,19 @@
         <v-btn icon dark class="mx-0 my-0 absolute__btn_panel mr-2" @click.native="dialogPDF = false">
           <v-icon>clear</v-icon>
         </v-btn>
-        <video v-if="dialogPDFLoading" id="editor-video-preloader" width="350" height="350" poster="https://editorassets.parastorage.com/image/editor-video-preloader-poster-white-2x2.gif" loop="" autoplay="" muted="true" src="https://editorassets.parastorage.com/video-preloader/editor-video-preloader-2-@2x.mp4"></video>
+        <div v-if="dialogPDFLoading" style="
+            min-height: 400px;
+            text-align: center;
+            margin: auto;
+            padding: 25%;
+        ">
+          <v-progress-circular
+            :size="100"
+            :width="1"
+            color="primary"
+            indeterminate
+          ></v-progress-circular>
+        </div>
         <iframe v-show="!dialogPDFLoading" id="dialogPDFPreview" src="" type="application/pdf" width="100%" height="100%" style="overflow: auto;min-height: 400px;" frameborder="0">
         </iframe>
       </v-card>
@@ -476,6 +488,7 @@ export default {
               }
               vm.btnDynamics = []
               vm.btnDynamics = btnDynamicsView
+              vm.btnStepsDynamics = []
               if (currentQuery.hasOwnProperty('step')) {
                 for (let key in vm.trangThaiHoSoList[vm.index]['items']) {
                   let currentStep = vm.trangThaiHoSoList[vm.index]['items'][key]
@@ -530,6 +543,7 @@ export default {
         }
         vm.btnDynamics = []
         vm.btnDynamics = btnDynamicsView
+        vm.btnStepsDynamics = []
         if (currentQuery.hasOwnProperty('step')) {
           for (let key in vm.trangThaiHoSoList[vm.index]['items']) {
             let currentStep = vm.trangThaiHoSoList[vm.index]['items'][key]
@@ -712,6 +726,10 @@ export default {
           path: '/danh-sach-ho-so/' + vm.index + '/bo-sung-ho-so/' + dossierItem.dossierId,
           query: vm.$router.history.current.query
         })
+      } else if (String(item.form) === 'COPY') {
+        vm.doCopy(dossierItem, item, index, isGroup)
+      } else if (String(item.form) === 'CANCEL') {
+        vm.doCancel(dossierItem, item, index, isGroup)
       } else if (String(item.form) === 'PRINT_01') {
         // Xem trước phiếu của một hồ sơ
         vm.doPrint01(dossierItem, item, index, isGroup)
@@ -723,6 +741,8 @@ export default {
         vm.doPrint03(dossierItem, item, index, isGroup)
       } else if (String(item.form) === 'GUIDE') {
         vm.doGuiding(dossierItem, item, index, isGroup)
+      } else if (String(item.form) === 'PREVIEW') {
+        vm.doPreview(dossierItem, item, index, isGroup)
       } else if (String(item.form) === 'ACTIONS') {
         vm.doActions(dossierItem, item, index, isGroup)
       } else if (String(item.form) === 'DELETE') {
@@ -767,38 +787,145 @@ export default {
       if (vm.thuTucHanhChinhSelected === null || vm.thuTucHanhChinhSelected === undefined || vm.thuTucHanhChinhSelected === 'undefined') {
         alert('Loại thủ tục bắt buộc phải chọn')
       } else {
-        console.log('vm.thuTucHanhChinhSelected', vm.thuTucHanhChinhSelected)
         let filter = {
           document: item.document,
           'serviceCode': vm.thuTucHanhChinhSelected.serviceCode,
           'govAgencyCode': vm.thuTucHanhChinhSelected.govAgencyCode,
           dossiers: JSON.stringify(vm.selected)
         }
+        vm.dialogPDFLoading = true
+        vm.dialogPDF = true
         vm.$store.dispatch('doPrint02', filter).then(function (result) {
-          console.log(result)
+          vm.dialogPDFLoading = false
+          document.getElementById('dialogPDFPreview').src = result
         })
       }
     },
     doPrint03 (dossierItem, item, index, isGroup) {
-      console.log('doPrint03')
+      let vm = this
+      vm.dialogPDFLoading = true
+      vm.dialogPDF = true
+      let filter = {
+        dossierId: dossierItem.dossierId,
+        document: item.document
+      }
+      vm.$store.dispatch('doPrint03', filter).then(function (result) {
+        vm.dialogPDFLoading = false
+        document.getElementById('dialogPDFPreview').src = result
+      })
     },
     doGuiding (dossierItem, item, index, isGroup) {
-      console.log('GUIDING')
+      let vm = this
+      if (vm.thuTucHanhChinhSelected === null || vm.thuTucHanhChinhSelected === undefined || vm.thuTucHanhChinhSelected === 'undefined') {
+        alert('Loại thủ tục bắt buộc phải chọn')
+      } else {
+        let filter = {
+          serviceConfigId: vm.thuTucHanhChinhSelected.serviceConfigId
+        }
+        vm.dialogPDFLoading = true
+        vm.dialogPDF = true
+        vm.$store.dispatch('doGuiding', filter).then(function (result) {
+          vm.dialogPDFLoading = false
+          document.getElementById('dialogPDFPreview').src = result
+        })
+      }
+    },
+    doPreview (dossierItem, item, index, isGroup) {
+      let vm = this
+      vm.dialogPDFLoading = true
+      vm.dialogPDF = true
+      let filter = {
+        dossierId: dossierItem.dossierId,
+        document: item.document
+      }
+      vm.$store.dispatch('doPrint03', filter).then(function (result) {
+        vm.dialogPDFLoading = false
+        document.getElementById('dialogPDFPreview').src = result
+      })
     },
     doActions (dossierItem, item, index, isGroup) {
+      let vm = this
+      let currentQuery = vm.$router.history.current.query
       console.log('doActions', item.action)
+      let result = {
+        actionCode: item.action
+      }
+      if (isGroup) {
+        console.log(vm.selected)
+        for (let key in vm.selected) {
+          let actionDossierItem = vm.selected[key]
+          vm.processAction(actionDossierItem, item, result, index, false)
+        }
+        router.push({
+          path: vm.$router.history.current.path,
+          query: {
+            recount: Math.floor(Math.random() * (100 - 1 + 1)) + 1,
+            renew: Math.floor(Math.random() * (100 - 1 + 1)) + 1,
+            q: currentQuery['q']
+          }
+        })
+      }
     },
-    doDeleteDossier (dossierItem, item, index, isGroup) {
+    doCopy (dossierItem, item, index, isGroup) {
       let vm = this
       let filter = {
         dossierId: dossierItem.dossierId
       }
+      vm.loadingAction = true
+      vm.$store.dispatch('doCopy', filter).then(function (result) {
+        vm.loadingAction = false
+        vm.indexAction = -1
+        router.push({
+          path: '/danh-sach-ho-so/' + vm.index + '/ho-so/' + result.dossierId + '/' + vm.itemAction.form,
+          query: vm.$router.history.current.query
+        })
+      })
+    },
+    doCancel (dossierItem, item, index, isGroup) {
+      let vm = this
+      vm.loadingAction = true
       if (isGroup) {
         console.log(vm.selected)
       } else {
-        vm.$store.dispatch('deleteDossier', filter).then(function (result) {
-          vm.hosoDatas.splice(index, 1)
+        let filter = {
+          dossierId: dossierItem.dossierId
+        }
+        vm.$store.dispatch('doCancel', filter).then(function (result) {
+          vm.loadingAction = false
+          vm.indexAction = -1
+          router.push({
+            path: '/danh-sach-ho-so/' + vm.index + '/ho-so/' + result.dossierId + '/' + vm.itemAction.form,
+            query: vm.$router.history.current.query
+          })
         })
+      }
+    },
+    doDeleteDossier (dossierItem, item, index, isGroup) {
+      let vm = this
+      let x = confirm('Bạn có muốn thực hiện hành động này?')
+      if (x) {
+        let filter = {
+          dossierId: dossierItem.dossierId
+        }
+        let currentQuery = vm.$router.history.current.query
+        if (isGroup) {
+          console.log(vm.selected)
+        } else {
+          vm.$store.dispatch('deleteDossier', filter).then(function (result) {
+            vm.dialogActionProcess = false
+            vm.loadingActionProcess = false
+            router.push({
+              path: vm.$router.history.current.path,
+              query: {
+                recount: Math.floor(Math.random() * (100 - 1 + 1)) + 1,
+                renew: Math.floor(Math.random() * (100 - 1 + 1)) + 1,
+                q: currentQuery['q']
+              }
+            })
+          })
+        }
+      } else {
+        return false
       }
     },
     doCreateDossier () {
@@ -843,19 +970,42 @@ export default {
         actionCode: result.actionCode
       }
       vm.dossierId = dossierItem.dossierId
+      let currentQuery = vm.$router.history.current.query
+      vm.loadingActionProcess = true
       if (isConfirm) {
         let x = confirm('Bạn có muốn thực hiện hành động này?')
         if (x) {
           vm.$store.dispatch('processDossierRouter', filter).then(function (result) {
-            vm.hosoDatas.splice(index, 1)
             vm.dialogActionProcess = false
+            vm.loadingActionProcess = false
+            router.push({
+              path: vm.$router.history.current.path,
+              query: {
+                recount: Math.floor(Math.random() * (100 - 1 + 1)) + 1,
+                renew: Math.floor(Math.random() * (100 - 1 + 1)) + 1,
+                q: currentQuery['q']
+              }
+            })
           })
         } else {
           return false
         }
       } else {
         vm.$store.dispatch('processDossierRouter', filter).then(function (result) {
-          vm.hosoDatas.splice(index, 1)
+          vm.dialogActionProcess = false
+          vm.loadingActionProcess = false
+          if (String(item.form) === 'ACTIONS') {
+            // get dossier submit fail and show on dialog
+          } else {
+            router.push({
+              path: vm.$router.history.current.path,
+              query: {
+                recount: Math.floor(Math.random() * (100 - 1 + 1)) + 1,
+                renew: Math.floor(Math.random() * (100 - 1 + 1)) + 1,
+                q: currentQuery['q']
+              }
+            })
+          }
         })
       }
     },
@@ -877,39 +1027,39 @@ export default {
       vm.resultDialogPick = result
       vm.indexDialogPick = index
       vm.userNote = 0
-      if (result.actionCode === 6200 || result.actionCode === '6200') {
-        isPopup = false
-        vm.showThucHienThanhToanDienTu = true
-      } else {
-        if (result.userNote === 1 || result.userNote === '1' || result.userNote === 2 || result.userNote === '2') {
+      if (result !== null && result !== undefined && result !== 'undefined' &&
+        (result.hasOwnProperty('userNote') || result.hasOwnProperty('extraForm') || result.hasOwnProperty('allowAssignUser') ||
+        result.hasOwnProperty('createFiles') || result.hasOwnProperty('eSignature') || result.hasOwnProperty('returnFiles') ||
+        result.hasOwnProperty('payment'))) {
+        if (result.hasOwnProperty('userNote') && (result.userNote === 1 || result.userNote === '1' || result.userNote === 2 || result.userNote === '2')) {
           isPopup = true
           vm.showYkienCanBoThucHien = true
           vm.userNote = result.userNote
         }
-        if (result.extraForm) {
+        if (result.hasOwnProperty('extraForm') && result.extraForm) {
           isPopup = true
           vm.showFormBoSungThongTinNgan = true
         }
-        if (result.allowAssignUser !== 0) {
+        if (result.hasOwnProperty('allowAssignUser') && result.allowAssignUser !== 0) {
           vm.assign_items = result.toUsers
           vm.type_assign = result.allowAssignUser
           isPopup = true
           vm.showPhanCongNguoiThucHien = true
         }
-        if (result.createFiles !== null && result.createFiles !== undefined && result.createFiles !== 'undefined' && result.createFiles.length > 0) {
+        if (result.hasOwnProperty('returnFiles') && result.createFiles !== null && result.createFiles !== undefined && result.createFiles !== 'undefined' && result.createFiles.length > 0) {
           isPopup = true
           vm.showTaoTaiLieuKetQua = true
         }
-        if (result.eSignature) {
+        if (result.hasOwnProperty('eSignature') && result.eSignature) {
           isPopup = true
           vm.showKyPheDuyetTaiLieu = true
         }
-        if (result.returnFiles !== null && result.returnFiles !== undefined && result.returnFiles !== 'undefined' && result.returnFiles.length > 0) {
+        if (result.hasOwnProperty('returnFiles') && result.returnFiles !== null && result.returnFiles !== undefined && result.returnFiles !== 'undefined' && result.returnFiles.length > 0) {
           isPopup = true
           vm.showTraKetQua = true
           vm.returnFiles = result.returnFiles
         }
-        if (result.payment !== null && result.payment !== undefined && result.payment !== 'undefined' && result.payment.requestPayment === 5) {
+        if (result.hasOwnProperty('payment') && result.payment !== null && result.payment !== undefined && result.payment !== 'undefined' && result.payment.requestPayment === 5) {
           isPopup = true
           vm.showXacNhanThuPhi = true
           vm.payments = result.payment
@@ -922,7 +1072,6 @@ export default {
       } else {
         vm.processAction(dossierItem, item, result, index, true)
       }
-      vm.$refs.thongTinCoBanHoSo.initData(dossierItem.dossierId)
     },
     processPullBtnDetail (dossierItem, item, index) {
       let vm = this

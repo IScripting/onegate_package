@@ -77,13 +77,18 @@
         vm.loading = true
         vm.$store.dispatch('loadMenuConfigToDo').then(function (result) {
           vm.trangThaiHoSoList = result
-          /*
           let currentParams = vm.$router.history.current.params
-          vm.trangThaiHoSoList[currentParams.index]['active'] = true
-          */
-          // test local
-          vm.trangThaiHoSoList[0]['active'] = true
-          //
+          if (!currentParams.hasOwnProperty('index')) {
+            vm.trangThaiHoSoList[0]['active'] = true
+            router.push({
+              path: '/danh-sach-ho-so/0',
+              query: {
+                q: vm.trangThaiHoSoList[0]['queryParams']
+              }
+            })
+          } else {
+            vm.trangThaiHoSoList[currentParams.index]['active'] = true
+          }
           vm.loadingCounter()
           vm.loading = false
         })
@@ -113,6 +118,9 @@
           vm.currentStep = String(currentQuery.step)
         } else {
           vm.currentStep = '0'
+        }
+        if (currentQuery.hasOwnProperty('recount')) {
+          vm.loadingCounter()
         }
         if (currentParams.hasOwnProperty('id')) {
           vm.detailState = 1

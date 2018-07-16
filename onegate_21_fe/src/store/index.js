@@ -615,6 +615,46 @@ export const store = new Vuex.Store({
         })
       })
     },
+    doCopy ({ commit, state }, filter) {
+      return new Promise((resolve, reject) => {
+        commit('setLoading', true)
+        let options = {
+          headers: {
+            'groupId': state.initData.groupId,
+            'Accept': 'application/json'
+          }
+        }
+        var dataPostdossier = new URLSearchParams()
+        axios.post(state.initData.postDossierApi + '/' + filter.dossierId + '/cloning', dataPostdossier, options).then(function (response) {
+          toastr.success('Yêu cầu của bạn được thực hiện thành công.')
+          resolve(response.data)
+        }).catch(function (error) {
+          reject(error)
+          toastr.error('Yêu cầu của bạn được thực hiện thất bại.')
+          commit('setLoading', false)
+        })
+      })
+    },
+    doCancel ({ commit, state }, filter) {
+      return new Promise((resolve, reject) => {
+        commit('setLoading', true)
+        let options = {
+          headers: {
+            'groupId': state.initData.groupId,
+            'Accept': 'application/json'
+          }
+        }
+        var dataPostdossier = new URLSearchParams()
+        axios.post(state.initData.postDossierApi + '/' + filter.dossierId + '/cancel', dataPostdossier, options).then(function (response) {
+          toastr.success('Yêu cầu của bạn được thực hiện thành công.')
+          resolve(response.data)
+        }).catch(function (error) {
+          reject(error)
+          toastr.error('Yêu cầu của bạn được thực hiện thất bại.')
+          commit('setLoading', false)
+        })
+      })
+    },
     putDossier ({ commit, state }, data) {
       return new Promise((resolve, reject) => {
         commit('setLoading', false)
@@ -1516,13 +1556,56 @@ export const store = new Vuex.Store({
         })
       })
     },
+    doPrint03 ({commit, state}, filter) {
+      return new Promise((resolve, reject) => {
+        store.dispatch('loadInitResource').then(function (result) {
+          let param = {
+            headers: {
+              groupId: state.initData.groupId
+            },
+            responseType: 'blob'
+          }
+          axios.get(state.initData.getNextAction + '/' + filter.dossierId + '/documents/print', param).then(function (response) {
+            let serializable = response.data
+            let file = window.URL.createObjectURL(serializable)
+            resolve(file)
+          }).catch(function (error) {
+            console.log(error)
+            toastr.error('Yêu cầu của bạn được thực hiện thất bại.')
+            reject(error)
+          })
+        })
+      })
+    },
+    doGuiding ({commit, state}, filter) {
+      return new Promise((resolve, reject) => {
+        store.dispatch('loadInitResource').then(function (result) {
+          let param = {
+            headers: {
+              groupId: state.initData.groupId
+            },
+            responseType: 'blob'
+          }
+          axios.get(state.initData.getServiceConfigs + '/' + filter.serviceConfigId + '/guide', param).then(function (response) {
+            let serializable = response.data
+            let file = window.URL.createObjectURL(serializable)
+            resolve(file)
+          }).catch(function (error) {
+            console.log(error)
+            toastr.error('Yêu cầu của bạn được thực hiện thất bại.')
+            reject(error)
+          })
+        })
+      })
+    },
     doPrint02 ({commit, state}, filter) {
       return new Promise((resolve, reject) => {
         store.dispatch('loadInitResource').then(function (result) {
           let param = {
             headers: {
               groupId: state.initData.groupId
-            }
+            },
+            responseType: 'blob'
           }
           let formData = new URLSearchParams()
           formData.append('serviceCode', filter.serviceCode)
@@ -1530,7 +1613,8 @@ export const store = new Vuex.Store({
           formData.append('dossiers', filter.dossiers)
           axios.post(state.initData.getNextAction + '/preview/' + filter.document ,formData , param).then(function (response) {
             let serializable = response.data
-            resolve(serializable)
+            let file = window.URL.createObjectURL(serializable)
+            resolve(file)
           }).catch(function (error) {
             console.log(error)
             toastr.error('Yêu cầu của bạn được thực hiện thất bại.')
